@@ -31,6 +31,7 @@ env:
   UPLOAD_COWTRANSFER: false
   UPLOAD_WETRANSFER: false
   UPLOAD_RELEASE: true
+  FILE_NAME: Qihoo6000
   TZ: Asia/Shanghai
 
 jobs:
@@ -169,14 +170,18 @@ jobs:
         echo "::set-output name=status::success"
 
     - name: Upload firmware to release
-      uses: softprops/action-gh-release@v1
-      if: steps.tag.outputs.status == 'success' && !cancelled()
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      uses: ncipollo/release-action@main
+      if: steps.organize.outputs.status == 'success' && env.UPLOAD_RELEASE == 'true'
       with:
-        tag_name: ${{ steps.tag.outputs.release_tag }}
-        body_path: release.txt
-        files: ${{ env.FIRMWARE }}/*
+        name: R${{ env.DATE }} for ${{ env.FILE_NAME }}
+        artifacts: ${{ env.FIRMWARE }}/*
+        allowUpdates: true
+        tag: ${{ env.FILE_NAME }}
+        token: ${{ secrets.GITHUB_TOKEN }}
+        body: |
+          **This is OpenWrt firmware for Qihoo6000**
+          * 这是 Qihoo6000 平台使用的 OpenWrt 固件
+          ${{ env.useVersionInfo }}
 
     - name: Delete workflow runs
       uses: GitRML/delete-workflow-runs@main
